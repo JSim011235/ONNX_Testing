@@ -5,7 +5,8 @@ import onnxruntime as ort
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-def main(num_threads=None, latency_multiplier=1.0):
+
+def run(num_threads=None, latency_multiplier=1.0) -> None:
 	model_path = "onnx/fashion_mnist_cnn.onnx"
 	if num_threads:
 		session_options = ort.SessionOptions()
@@ -14,7 +15,9 @@ def main(num_threads=None, latency_multiplier=1.0):
 	else:
 		session_options = ort.SessionOptions()
 	providers = ["CPUExecutionProvider"]
-	session = ort.InferenceSession(model_path, sess_options=session_options, providers=providers)
+	session = ort.InferenceSession(
+		model_path, sess_options=session_options, providers=providers
+	)
 
 	input_name = session.get_inputs()[0].name
 
@@ -69,7 +72,9 @@ def main(num_threads=None, latency_multiplier=1.0):
 	if timings.size:
 		p50 = np.percentile(timings, 50)
 		p95 = np.percentile(timings, 95)
-		print(f"Configuration: threads={num_threads or 'auto'}, latency_multiplier={latency_multiplier}")
+		print(
+			f"Configuration: threads={num_threads or 'auto'}, latency_multiplier={latency_multiplier}"
+		)
 		print(
 			"Timing (ms) | "
 			f"min {timings.min():.3f} | "
@@ -80,8 +85,10 @@ def main(num_threads=None, latency_multiplier=1.0):
 		)
 
 
-if __name__ == "__main__":
-	parser = argparse.ArgumentParser(description="Test ONNX model on CPU with optional thread limiting.")
+def main() -> None:
+	parser = argparse.ArgumentParser(
+		description="Test ONNX model on CPU with optional thread limiting."
+	)
 	parser.add_argument(
 		"--threads",
 		type=int,
@@ -92,7 +99,14 @@ if __name__ == "__main__":
 		"--latency-multiplier",
 		type=float,
 		default=1.0,
-		help="Multiply measured latency by this factor to simulate slower CPU (default: 1.0).",
+		help=(
+			"Multiply measured latency by this factor to simulate slower CPU "
+			"(default: 1.0)."
+		),
 	)
 	args = parser.parse_args()
-	main(num_threads=args.threads, latency_multiplier=args.latency_multiplier)
+	run(num_threads=args.threads, latency_multiplier=args.latency_multiplier)
+
+
+if __name__ == "__main__":
+	main()
